@@ -17,15 +17,32 @@
 
 ```sh
 docker compose build
+docker compose up
 ```
 
 ## Utilisation
 
+### Enregistrer une URL longue :
+
 ```sh
-docker compose up
+curl -X POST <URL de base>/urls -u <username>:<password> -H "Content-Type: application/json" -d '{"url": "<url à enregistrer>"}'
+```
+Réponse :
+
+```json
+{
+  "id":"bb1a2e2b",
+  "short_url":"http://localhost:3000/bb1a2e2b"
+}
 ```
 
-## Author
+### Redirection depuis l'URL courte :
+
+```sh
+curl -L http://localhost:3000/bb1a2e2b
+```
+
+## Auteur
 
 👤 **Adrien Herbert**
 
