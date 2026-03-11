@@ -47,6 +47,11 @@ function basicAuth(req, res, next) {
   next();
 }
 
+// GET /health — healthcheck
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // POST /urls — enregistre une URL et retourne son identifiant court
 app.post('/urls', basicAuth, (req, res) => {
   const { url } = req.body;
