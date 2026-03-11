@@ -61,14 +61,25 @@ app.post('/urls', basicAuth, (req, res) => {
     return res.status(400).json({ error: 'URL invalide' });
   }
 
-  const id = uuidv4().split('-')[0]; // ex: "a3f2c1b4" (8 caractères)
-
-  db.run('INSERT INTO urls (id, url) VALUES (?, ?)', [id, url], (err) => {
+  db.get('SELECT id FROM urls WHERE url = ?', [url], (err, row) => {
     if (err) {
       console.error(err.message);
       return res.status(500).json({ error: 'Erreur interne' });
     }
-    res.status(201).json({ id, short_url: `${req.protocol}://${req.get('host')}/${id}` });
+
+    if (row) {
+      return res.status(200).json({ id: row.id, short_url: `${req.protocol}://${req.get('host')}/${row.id}` });
+    }
+
+    const id = uuidv4().split('-')[0]; // ex: "a3f2c1b4" (8 caractères)
+
+    db.run('INSERT INTO urls (id, url) VALUES (?, ?)', [id, url], (err) => {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).json({ error: 'Erreur interne' });
+      }
+      res.status(201).json({ id, short_url: `${req.protocol}://${req.get('host')}/${id}` });
+    });
   });
 });
 
