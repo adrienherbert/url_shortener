@@ -10,6 +10,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const BASIC_USER = process.env.AUTH_USER || 'admin';
 const BASIC_PASS = process.env.AUTH_PASS || 'password';
+const BASE_URL = process.env.BASE_URL ? process.env.BASE_URL.replace(/\/$/, '') : null;
 
 // Base de données SQLite
 const db = new sqlite3.Database(path.join(__dirname, 'var', 'database.sqlite'), (err) => {
@@ -27,6 +28,12 @@ db.run(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+// Construit l'URL courte en privilégiant BASE_URL sur l'hôte de la requête
+function shortUrl(req, id) {
+  const base = BASE_URL || `${req.protocol}://${req.get('host')}`;
+  return `${base}/${id}`;
+}
 
 // Middleware d'authentification HTTP Basic
 function basicAuth(req, res, next) {
@@ -73,7 +80,7 @@ app.post('/urls', basicAuth, (req, res) => {
     }
 
     if (row) {
-      return res.status(200).json({ id: row.id, short_url: `${req.protocol}://${req.get('host')}/${row.id}` });
+      return res.status(200).json({ id: row.id, short_url: shortUrl(req, row.id) });
     }
 
     const id = uuidv4().split('-')[0]; // ex: "a3f2c1b4" (8 caractères)
@@ -83,7 +90,7 @@ app.post('/urls', basicAuth, (req, res) => {
         console.error(err.message);
         return res.status(500).json({ error: 'Erreur interne' });
       }
-      res.status(201).json({ id, short_url: `${req.protocol}://${req.get('host')}/${id}` });
+      res.status(201).json({ id, short_url: shortUrl(req, id) });
     });
   });
 });
