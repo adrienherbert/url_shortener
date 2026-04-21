@@ -1,33 +1,42 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Présentation
 
-## Project
+Réducteur d'URL — service Node.js/Express qui raccourcit des URLs longues en
+identifiants courts (8 caractères UUID). Les URLs sont stockées en SQLite.
 
-URL shortener service ("Outil de réduction d'URL") — Node.js application using SQLite3 as the database. Entry point is `app.js`.
+## Stack technique
 
-## Tech Stack
+- **Runtime** : Node.js
+- **Framework** : Express 5
+- **Base de données** : SQLite3 (`var/database.sqlite`)
+- **Auth** : HTTP Basic (variables d'environnement `AUTH_USER` / `AUTH_PASS`)
 
-- **Runtime:** Node.js
-- **Package manager:** Yarn
-- **Database:** SQLite3 (via `sqlite3` npm package)
-
-## Commands
-
-No scripts are defined in `package.json` yet. Once added, run them with:
+## Commandes
 
 ```bash
-yarn <script>      # e.g. yarn start, yarn test
-node app.js        # run directly
+yarn start        # Démarrer le serveur (port 3000 par défaut)
 ```
 
-## Architecture
+## Variables d'environnement
 
-This project is in early scaffold stage — only `package.json` and `yarn.lock` exist. The intended structure:
+| Variable    | Défaut             | Rôle |
+|---|---|---|
+| `PORT`      | `3000`             | Port d'écoute |
+| `AUTH_USER` | `admin`            | Login HTTP Basic |
+| `AUTH_PASS` | `password`         | Mot de passe HTTP Basic |
+| `BASE_URL`  | hôte de la requête | Préfixe des URLs courtes générées |
 
-- `app.js` — main entry point (HTTP server, routing)
-- `var/` — runtime/variable data directory (e.g. SQLite database file)
+## API
 
-When implementing, the core flows are:
-1. **Shorten:** accept a long URL, store it in SQLite with a generated short code, return the short URL
-2. **Redirect:** look up the short code in SQLite, redirect to the original URL
+| Méthode | Endpoint  | Auth | Description |
+|---|---|---|---|
+| `GET`   | `/health` | Non  | Healthcheck — retourne `{ status: "ok" }` |
+| `POST`  | `/urls`   | Oui  | Raccourcit une URL — body `{ "url": "..." }` |
+| `GET`   | `/:id`    | Non  | Redirige (301) vers l'URL associée |
+
+`POST /urls` est idempotent : si l'URL existe déjà, retourne l'identifiant existant.
+
+## Déploiement
+
+Via Docker Compose (`docker-compose.yml`). Le fichier SQLite est persisté dans `var/`.
